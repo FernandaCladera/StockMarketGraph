@@ -1,0 +1,12 @@
+# Ignore the .env file
+.env
+
+# Ignore node_modules (for JavaScript projects)
+node_modules/
+
+# Ignore log files
+*.log
+
+# Ignore compiled Python files
+__pycache__/
+*.pyc
