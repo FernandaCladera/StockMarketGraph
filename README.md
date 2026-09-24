@@ -15,7 +15,7 @@ This project explores relationships between S&P 100 stocks using graph analytics
 
 ## 1. Building the graph
 
-I calculated distance correlation for all 4,950 possible pairs of stocks and used 0.6 as the threshold for creating an edge. This leaves 159 unique stock pairs above the threshold, represented as 318 directed relationships in Neo4j.
+Distance correlation was calculated for all 4,950 possible stock pairs, using 0.6 as the threshold for creating an edge. This resulted in 159 unique stock pairs above the threshold, represented as 318 directed relationships in Neo4j.
 
 ![Distribution of distance correlations with the 0.6 threshold](image/01_correlation_distribution.png)
 
@@ -39,7 +39,7 @@ The largest connected component contains 21 stocks and 105 pairs. Using the orig
 
 ![Largest connected component coloured by GICS sector](image/02_component_by_sector.png)
 
-I then compared these sector labels with the communities identified by the Louvain algorithm:
+The Louvain communities were then compared with the original GICS sector labels:
 
 ![The same component coloured by Louvain community](image/03_component_by_community.png)
 
@@ -54,7 +54,7 @@ The Louvain partition has a modularity of 0.128. This is relatively low, so I wo
 
 ![LangGraph query workflow](image/langgraph.png)
 
-The final part of the project adds a natural-language interface to the Neo4j graph. I used LangGraph to separate the process into domain checking, Cypher generation, validation and correction, query execution, and final answer generation.
+The final part of the project adds a natural-language interface to the Neo4j graph. LangGraph is used to separate the workflow into domain checking, Cypher generation, validation and correction, query execution, and final answer generation.
 
 Below are two examples from `3_LLMintegration.ipynb`.
 
@@ -71,27 +71,27 @@ MATCH (s:Stock)-[:BELONGS_TO]->(:Sector {name:'Information Technology'})
 RETURN count(DISTINCT s)      
 ```
 
-The stocks that have a correlation with AAPL are AMZN, GOOGL, and MSFT.
+There are 18 stocks that belong to the Information Technology sector.
 
 ---
 
 ## Design decisions
 
 **Distance correlation instead of Pearson correlation.**  
-The graph is based on distance correlation because the relationship between two stocks does not have to be linear. I calculated it across all stock pairs and used 0.6 as the cut-off for creating an edge. The choice of distance correlation was based on Ugwu, Miasnikof & Lawryshyn, *Distance Correlation Market Graph: The Case of S&P500 Stocks*, Mathematics 2023, 11, 3832.
+The graph is based on distance correlation because relationships between stock returns are not necessarily linear. Distance correlation was calculated across all stock pairs, using 0.6 as the threshold for creating an edge. The methodology was based on Ugwu, Miasnikof & Lawryshyn, *Distance Correlation Market Graph: The Case of S&P500 Stocks*, Mathematics 2023, 11, 3832.
 
 **WCC before Louvain.**  
-At a threshold of 0.6 the graph is quite fragmented: 48 weakly connected components, with many small components and isolated stocks. I used WCC to identify them first, and ran Louvain on the largest component (21 stocks). This way, the Louvain result describes structure inside the main connected group rather than simply separating parts of the graph that were already disconnected.
+At a threshold of 0.6, the graph contains 48 weakly connected components, including several small components and isolated stocks. WCC was used to identify these components before applying Louvain to the largest one (21 stocks). This allows the Louvain analysis to focus on community structure within the main connected group rather than on parts of the graph that are already disconnected.
 
 **LangGraph for the query workflow.**  
-I started with `GraphCypherQAChain`, which was useful as a first working version of the natural-language query layer. The limitation was that I had little control over what happened between generating the Cypher query and executing it.
+`GraphCypherQAChain` was first used as a baseline for the natural-language query layer. While it provides a direct path from a question to Cypher execution, it offers limited control over the intermediate steps.
 
-The LangGraph version makes those steps explicit. A question first goes through a domain check, then Cypher generation and validation. If validation finds a problem, the query goes through a correction step and is checked again before execution. I also use Neo4j `EXPLAIN` and `CypherQueryCorrector` as part of the validation.
+The LangGraph implementation makes these steps explicit. Questions pass through domain checking, Cypher generation and validation before execution. If validation identifies a problem, the query is sent through a correction step and validated again. Neo4j `EXPLAIN` and `CypherQueryCorrector` are also used during validation.
 
-I kept the original `GraphCypherQAChain` implementation in the notebook as a baseline, followed by the LangGraph version.
+Both implementations are kept in the notebook, with `GraphCypherQAChain` serving as the baseline before the LangGraph workflow.
 
 **Few-shot examples.**  
-I added question/Cypher pairs that match the schema and the types of stock-market questions used in this project. The examples are stored with FAISS and selected by semantic similarity, so each question gets the two examples closest to it rather than the same fixed examples every time.
+Question/Cypher pairs were added to match the graph schema and the types of stock-market questions used in this project. The examples are stored with FAISS and selected by semantic similarity, so each question receives the two most relevant examples rather than the same fixed examples every time.
 
 ---
 
