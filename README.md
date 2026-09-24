@@ -10,7 +10,6 @@ This project explores relationships between S&P 100 stocks using graph analytics
 | **Analysis** | Degree, betweenness and eigenvector centrality, Weakly Connected Components, and Louvain community detection |
 | **Query layer** | LangGraph workflow for domain checking, Cypher generation, validation and correction, query execution, and answer generation |
 
-The figures below can be regenerated from the committed data using `image/make_figures.py`.
 
 ---
 
@@ -22,7 +21,9 @@ I calculated distance correlation for all 4,950 possible pairs of stocks and use
 
 With this threshold, 34 stocks have no connections. The graph contains 48 weakly connected components, with the largest containing 21 stocks. The following analysis focuses mainly on this component.
 
----## 2. Comparing centrality measures
+---
+
+## 2. Comparing centrality measures
 
 ![Eigenvector and betweenness centrality, top ten each](image/04_centrality_comparison.png)
 
@@ -67,8 +68,10 @@ Below are two examples from `3_LLMintegration.ipynb`.
 
 ```cypher
 MATCH (s:Stock)-[:BELONGS_TO]->(:Sector {name:'Information Technology'})
-RETURN count(DISTINCT s)      "The stocks that have a correlation with AAPL are AMZN, GOOGL, and MSFT."
+RETURN count(DISTINCT s)      
 ```
+
+The stocks that have a correlation with AAPL are AMZN, GOOGL, and MSFT.
 
 ---
 
@@ -106,12 +109,11 @@ The stock-market graph, distance-correlation analysis, Neo4j schema, centrality 
 notebook/1_data.ipynb            Data collection, EDA, distance-correlation matrix, MST
 notebook/2_graph.ipynb           Neo4j graph construction, centrality, WCC, Louvain
 notebook/3_LLMintegration.ipynb  GraphCypherQAChain baseline, then the LangGraph workflow
-image/make_figures.py            Compiled figures and images for the documentation
+image/figures.py            Compiled figures and images for the documentation
 data/stocks.csv                  S&P 100 constituents with sector
 data/correlation.csv             Pairwise distance correlations (all pairs)
 data/mst_edges.csv               Minimum spanning tree edges
 Project_StockMarketGraphDB.pdf   Full technical report
-LICENSE                          MIT
 ```
 
 All notebooks are committed **with their outputs**, so every result above can be read without running anything.
